@@ -1,0 +1,29 @@
+# paper : gerçek fiyat, sanal para (API anahtarı gerekmez)
+# demo  : Binance demo hesabında gerçek emirler (demo anahtarı gerekir, para riski yok)
+# live  : GERÇEK PARA. Ayrıca --confirm-live bayrağı gerekir.
+mode: paper
+
+symbol: BTC/USDT:USDT   # USDT-M sürekli vadeli
+timeframe: 1h
+
+strategy:
+  ema_fast: 20          # hızlı EMA, yavaş EMA'yı yukarı keserse long, aşağı keserse short
+  ema_slow: 50
+  rsi_period: 14
+  rsi_long_max: 70      # RSI bunun üstündeyse long açma (aşırı alım)
+  rsi_short_min: 30     # RSI bunun altındaysa short açma (aşırı satım)
+  atr_period: 14
+  sl_atr: 2.0           # zarar durdur = giriş -/+ 2 x ATR
+  tp_atr: 3.0           # kâr al     = giriş +/- 3 x ATR
+
+risk:
+  risk_per_trade: 0.01  # stop olursa kasanın en fazla %1'i kaybedilir
+  leverage: 3
+  max_daily_loss: 0.05  # gün içinde kasa %5 düşerse o gün yeni işlem açılmaz
+
+costs:
+  taker_fee: 0.0005     # %0.05 (backtest ve paper için)
+  slippage: 0.0002      # %0.02
+
+paper:
+  initial_balance: 1000 # USDT
