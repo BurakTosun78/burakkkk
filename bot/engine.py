@@ -11,7 +11,7 @@ class Position:
     qty: float
     entry: float
     sl: float
-    tp: float
+    tp: float | None  # None: sabit kâr al yok, ters sinyalle çıkılır
     entry_ts: int
 
 
@@ -81,7 +81,7 @@ class SimAccount:
         p = self.position
         if p:
             hit_sl = low <= p.sl if p.side == 1 else high >= p.sl
-            hit_tp = high >= p.tp if p.side == 1 else low <= p.tp
+            hit_tp = p.tp is not None and (high >= p.tp if p.side == 1 else low <= p.tp)
             if hit_sl:
                 # Mum stopun ötesinde açıldıysa (gap) açılış fiyatından dolar.
                 px = min(p.sl, open_) if p.side == 1 else max(p.sl, open_)
@@ -93,7 +93,7 @@ class SimAccount:
             return events
         if self.position and self.position.side == -signal:
             events.append(f"TERS SİNYAL kapat {self.close(next_price, ts, 'flip').pnl:+.2f}")
-        if not self.position:
+        if not self.position and (signal == 1 or self.cfg.strategy.allow_short):
             if self.halted():
                 events.append("günlük zarar limiti: yeni işlem yok")
             else:
@@ -102,7 +102,7 @@ class SimAccount:
                 if p:
                     events.append(
                         f"{'LONG' if signal == 1 else 'SHORT'} {p.qty:.6f} @ {p.entry:.2f} "
-                        f"SL {p.sl:.2f} TP {p.tp:.2f}"
+                        f"SL {p.sl:.2f} TP {p.tp and round(p.tp, 2)}"
                     )
         return events
 

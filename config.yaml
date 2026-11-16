@@ -4,7 +4,7 @@
 mode: paper
 
 symbol: BTC/USDT:USDT   # USDT-M sürekli vadeli
-timeframe: 1h
+timeframe: 4h
 
 strategy:
   ema_fast: 20          # hızlı EMA, yavaş EMA'yı yukarı keserse long, aşağı keserse short
@@ -13,8 +13,9 @@ strategy:
   rsi_long_max: 70      # RSI bunun üstündeyse long açma (aşırı alım)
   rsi_short_min: 30     # RSI bunun altındaysa short açma (aşırı satım)
   atr_period: 14
-  sl_atr: 2.0           # zarar durdur = giriş -/+ 2 x ATR
-  tp_atr: 3.0           # kâr al     = giriş +/- 3 x ATR
+  sl_atr: 3.0           # zarar durdur = giriş -/+ 3 x ATR
+  tp_atr: 0             # kâr al = giriş +/- N x ATR; 0 = yok, trend ters sinyale kadar taşınır
+  allow_short: true     # false: yalnızca long açılır
 
 risk:
   risk_per_trade: 0.01  # stop olursa kasanın en fazla %1'i kaybedilir

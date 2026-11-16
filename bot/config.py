@@ -14,6 +14,7 @@ class Strategy:
     atr_period: int = 14
     sl_atr: float = 2.0
     tp_atr: float = 3.0
+    allow_short: bool = True
 
 
 @dataclass
@@ -54,8 +55,8 @@ class Config:
             raise ValueError("risk_per_trade 0 ile 0.05 (%5) arasında olmalı")
         if not 1 <= r.leverage <= 20:
             raise ValueError("leverage 1 ile 20 arasında olmalı")
-        if s.sl_atr <= 0 or s.tp_atr <= 0:
-            raise ValueError("sl_atr ve tp_atr pozitif olmalı")
+        if s.sl_atr <= 0 or s.tp_atr < 0:
+            raise ValueError("sl_atr pozitif, tp_atr >= 0 olmalı")
         return self
 
 

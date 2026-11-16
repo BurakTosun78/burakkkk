@@ -87,6 +87,20 @@ def test_take_profit_gap_and_flip():
     assert acc.trades[2].reason == "flip" and acc.position.side == -1
 
 
+def test_no_take_profit_and_long_only():
+    cfg = no_cost_cfg()
+    cfg.strategy.tp_atr, cfg.strategy.allow_short = 0, False
+    acc = SimAccount(cfg, 1000)
+    assert acc.on_bar(0, 100, 101, 99, -1, 2.0, 100) == [] and acc.position is None  # short açılmaz
+    acc.on_bar(H, 100, 101, 99, 1, 2.0, 100)
+    assert acc.position.tp is None
+    acc.on_bar(2 * H, 100, 500, 99, 0, 2.0, 500)  # kâr al yok: pozisyon taşınır
+    assert acc.position is not None
+    acc = SimAccount.from_dict(cfg, json.loads(json.dumps(acc.to_dict())))
+    acc.on_bar(3 * H, 500, 501, 499, -1, 2.0, 500)  # ters sinyal: kapat, short açma
+    assert acc.position is None and acc.trades[0].reason == "flip" and acc.balance > 1000
+
+
 def test_fees_reduce_balance_and_daily_halt():
     cfg = Config()
     acc = SimAccount(cfg, 1000)
@@ -198,6 +212,19 @@ def test_live_flip_hold_and_failed_stop(tmp_path):
     with pytest.raises(RuntimeError):
         LiveBroker(ex, Config(), tmp_path / "s2.json").on_signal(1, 5.0)
     assert ex.pos is None  # stopsuz pozisyon bırakılmadı
+
+
+def test_live_no_tp_and_long_only(tmp_path):
+    cfg = Config()
+    cfg.strategy.tp_atr, cfg.strategy.allow_short = 0, False
+    ex = FakeExchange()
+    b = LiveBroker(ex, cfg, tmp_path / "s.json")
+    b.on_signal(-1, 5.0)
+    assert ex.orders == []
+    b.on_signal(1, 5.0)
+    assert [set(o[2]) for o in ex.orders] == [set(), {"stopLossPrice", "reduceOnly"}]
+    b.on_signal(-1, 5.0)  # long kapanır, short açılmaz
+    assert ex.pos is None and len(ex.orders) == 3
 
 
 def test_live_daily_halt_and_min_size(tmp_path):

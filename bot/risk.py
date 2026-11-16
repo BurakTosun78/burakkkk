@@ -17,6 +17,7 @@ def position_size(equity: float, price: float, atr: float, cfg: Config) -> float
     return min(qty, max_qty)
 
 
-def stop_prices(side: int, entry: float, atr: float, cfg: Config) -> tuple[float, float]:
-    """(zarar durdur, kâr al) fiyatları."""
-    return entry - side * cfg.strategy.sl_atr * atr, entry + side * cfg.strategy.tp_atr * atr
+def stop_prices(side: int, entry: float, atr: float, cfg: Config) -> tuple[float, float | None]:
+    """(zarar durdur, kâr al) fiyatları. tp_atr 0 ise kâr al yoktur (None)."""
+    s = cfg.strategy
+    return entry - side * s.sl_atr * atr, (entry + side * s.tp_atr * atr) if s.tp_atr else None

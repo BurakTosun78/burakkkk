@@ -65,7 +65,7 @@ class LiveBroker:
             self.cancel_orders()
             self.close(side, qty)
             side = 0
-        if side != 0:
+        if side != 0 or (signal == -1 and not self.cfg.strategy.allow_short):
             return
 
         equity = self.equity()
@@ -85,13 +85,14 @@ class LiveBroker:
         order = self.ex.create_order(self.symbol, "market", buy, qty)
         entry = float(order.get("average") or price)
         sl, tp = stop_prices(signal, entry, atr, self.cfg)
-        log.info("%s %s @ %.2f  SL %.2f  TP %.2f", "LONG" if signal == 1 else "SHORT", qty, entry, sl, tp)
+        log.info("%s %s @ %.2f  SL %.2f  TP %s", "LONG" if signal == 1 else "SHORT", qty, entry, sl, tp)
         try:
             p = self.ex.price_to_precision
             self.ex.create_order(self.symbol, "market", sell, qty, None,
                                  {"stopLossPrice": p(self.symbol, sl), "reduceOnly": True})
-            self.ex.create_order(self.symbol, "market", sell, qty, None,
-                                 {"takeProfitPrice": p(self.symbol, tp), "reduceOnly": True})
+            if tp is not None:
+                self.ex.create_order(self.symbol, "market", sell, qty, None,
+                                     {"takeProfitPrice": p(self.symbol, tp), "reduceOnly": True})
         except Exception:
             # Stopsuz pozisyon taşımaktansa hemen kapat.
             log.exception("SL/TP emri verilemedi: pozisyon kapatılıyor")

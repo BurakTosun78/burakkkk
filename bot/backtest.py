@@ -19,10 +19,14 @@ class Result:
         losses = [p for p in pnls if p <= 0]
         final = float(self.equity.iloc[-1]) if len(self.equity) else self.initial
         dd = (self.equity / self.equity.cummax() - 1).min() if len(self.equity) else 0.0
+        days = max((self.equity.index[-1] - self.equity.index[0]).days, 1) if len(self.equity) else 1
+        growth = max(final / self.initial, 1e-9)
         return {
             "işlem sayısı": len(pnls),
             "kazanma oranı %": round(100 * len(wins) / len(pnls), 1) if pnls else 0.0,
             "toplam getiri %": round(100 * (final / self.initial - 1), 2),
+            "yıllık getiri %": round(100 * (growth ** (365 / days) - 1), 2),
+            "günlük ort. getiri %": round(100 * (growth ** (1 / days) - 1), 4),
             "maks. düşüş %": round(100 * float(dd), 2),
             "profit factor": round(sum(wins) / -sum(losses), 2) if sum(losses) < 0 else float("inf"),
             "ort. işlem (USDT)": round(sum(pnls) / len(pnls), 2) if pnls else 0.0,
